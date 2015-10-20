@@ -17,47 +17,6 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <toolbar clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6TZ-nr-qAP" userLabel="TopToolbar">
-                                <rect key="frame" x="0.0" y="0.0" width="600" height="60"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="60" id="F0o-1o-JqA"/>
-                                    <constraint firstAttribute="height" constant="60" id="jB7-Lw-HAA"/>
-                                </constraints>
-                                <items>
-                                    <barButtonItem systemItem="action" id="yxN-ax-x38">
-                                        <connections>
-                                            <action selector="shareMeme:" destination="BYZ-38-t0r" id="3we-c2-x77"/>
-                                        </connections>
-                                    </barButtonItem>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="nKa-Yd-UN9"/>
-                                    <barButtonItem title="Cancel" id="8jn-gO-O9J">
-                                        <connections>
-                                            <action selector="cancelMeme:" destination="BYZ-38-t0r" id="niW-wS-etR"/>
-                                        </connections>
-                                    </barButtonItem>
-                                </items>
-                            </toolbar>
-                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="center" semanticContentAttribute="spatial" translatesAutoresizingMaskIntoConstraints="NO" id="1Wy-AX-Rbi">
-                                <rect key="frame" x="0.0" y="556" width="600" height="44"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="44" id="4CD-TI-Fs3"/>
-                                </constraints>
-                                <items>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="Fk3-8J-nuq"/>
-                                    <barButtonItem systemItem="camera" id="g8o-Dm-Fuq">
-                                        <connections>
-                                            <action selector="takeAPhoto:" destination="BYZ-38-t0r" id="TwP-2X-PM7"/>
-                                        </connections>
-                                    </barButtonItem>
-                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="86r-5c-HbE"/>
-                                    <barButtonItem title="Album" id="k0h-Nw-ArU">
-                                        <connections>
-                                            <action selector="pickAnImageFromGallery:" destination="BYZ-38-t0r" id="c5O-44-qxT"/>
-                                        </connections>
-                                    </barButtonItem>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="RVB-jO-dSi"/>
-                                </items>
-                            </toolbar>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="VcW-2g-uUE" userLabel="MemeView">
                                 <rect key="frame" x="0.0" y="60" width="600" height="496"/>
                                 <subviews>
@@ -87,7 +46,7 @@
                                         <constraints>
                                             <constraint firstAttribute="height" constant="60" id="INW-Mm-oZs"/>
                                         </constraints>
-                                        <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="14"/>
+                                        <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
                                         <textInputTraits key="textInputTraits" autocapitalizationType="allCharacters"/>
                                     </textField>
                                 </subviews>
@@ -119,6 +78,58 @@
                                     </mask>
                                 </variation>
                             </view>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="center" semanticContentAttribute="spatial" translatesAutoresizingMaskIntoConstraints="NO" id="1Wy-AX-Rbi">
+                                <rect key="frame" x="0.0" y="556" width="600" height="44"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="4CD-TI-Fs3"/>
+                                </constraints>
+                                <items>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="Fk3-8J-nuq"/>
+                                    <barButtonItem systemItem="camera" id="g8o-Dm-Fuq">
+                                        <connections>
+                                            <action selector="takeAPhoto:" destination="BYZ-38-t0r" id="TwP-2X-PM7"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="86r-5c-HbE"/>
+                                    <barButtonItem title="Album" id="k0h-Nw-ArU">
+                                        <connections>
+                                            <action selector="pickAnImageFromGallery:" destination="BYZ-38-t0r" id="c5O-44-qxT"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="RVB-jO-dSi"/>
+                                </items>
+                            </toolbar>
+                            <toolbar clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6TZ-nr-qAP" userLabel="TopToolbar">
+                                <rect key="frame" x="0.0" y="0.0" width="600" height="60"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="60" id="F0o-1o-JqA"/>
+                                    <constraint firstAttribute="height" constant="60" id="jB7-Lw-HAA"/>
+                                </constraints>
+                                <items>
+                                    <barButtonItem systemItem="action" id="yxN-ax-x38">
+                                        <connections>
+                                            <action selector="shareMeme:" destination="BYZ-38-t0r" id="3we-c2-x77"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="nKa-Yd-UN9"/>
+                                    <barButtonItem title="Crop" id="Zgc-5m-TLe">
+                                        <connections>
+                                            <action selector="cropImage:" destination="BYZ-38-t0r" id="QzY-WP-bdu"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem title="Font" id="xPx-WQ-WqY">
+                                        <connections>
+                                            <action selector="changeFont:" destination="BYZ-38-t0r" id="bDd-RC-c8Q"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem width="42" style="plain" systemItem="fixedSpace" id="pD0-4c-N2d"/>
+                                    <barButtonItem title="Cancel" id="8jn-gO-O9J">
+                                        <connections>
+                                            <action selector="cancelMeme:" destination="BYZ-38-t0r" id="niW-wS-etR"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </items>
+                            </toolbar>
                         </subviews>
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
@@ -147,6 +158,7 @@
                     <connections>
                         <outlet property="bottomTextField" destination="75o-Z8-bob" id="4Jt-3y-Pwt"/>
                         <outlet property="cameraButtonItem" destination="g8o-Dm-Fuq" id="Xaa-2p-y4y"/>
+                        <outlet property="cropButtonItem" destination="Zgc-5m-TLe" id="8A1-7h-W8L"/>
                         <outlet property="frameView" destination="VcW-2g-uUE" id="LkE-aD-qx8"/>
                         <outlet property="imageView" destination="35y-0V-Z1F" id="BQa-Mr-C7v"/>
                         <outlet property="shareButtonItem" destination="yxN-ax-x38" id="V7U-VB-27y"/>
