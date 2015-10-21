@@ -10,99 +10,80 @@ import UIKit
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate{
     
-    @IBOutlet weak var cropButtonItem: UIBarButtonItem!
     @IBOutlet weak var topToolbar: UIToolbar!
-    @IBOutlet weak var frameView: UIView!
+    @IBOutlet weak var bottomToolbar: UIToolbar!
     @IBOutlet weak var bottomTextField: UITextField!
     @IBOutlet weak var topTextField: UITextField!
     @IBOutlet weak var imageView: UIImageView!
     @IBOutlet weak var cameraButtonItem: UIBarButtonItem!
+    @IBOutlet weak var cropButtonItem: UIBarButtonItem!
     @IBOutlet weak var shareButtonItem: UIBarButtonItem!
     
+    ///EXTRA FEATURE: App uses “Impact” font
+    let _impactFontName: String = "impact"
+    let _papyrusFontName: String = "papyrus"
+    let _cropLabel: String = "Crop"
+    let _fitLabel: String = "Fit"
+    let _fontAlertTitle: String = "Font Selectiont"
+    let _fontAlertDescription: String = "Select the font of the textField"
+    let _fontAlertOption1: String = "Impact"
+    let _fontAlertOption2: String = "Papyrus"
+    let _fontAlertOptionCancel: String = "Cancel"
+    let _topLabelText: String = "TOP TEXT"
+    let _bottomLabelText: String = "BOTTOM TEXT"
+
     var selectedImage: UIImage!
     var isKeyboardHidden: Bool = true
+    
+    /// The actual scale method. True for crop, false for fit
     var isCroppModeEnabled: Bool = false
-    var fontName: String = "impact"
+    
+    /// Current selected font
+    var fontName: String!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureEditText(topTextField)
-        configureEditText(bottomTextField)
         topTextField.delegate = self
         bottomTextField.delegate = self
         resetViews()
     }
-
-    @IBAction func cropImage(sender: AnyObject) {
-        self.imageView.contentMode = isCroppModeEnabled ? .ScaleAspectFit : .ScaleAspectFill
-        isCroppModeEnabled = !isCroppModeEnabled
-        self.cropButtonItem.title = isCroppModeEnabled ? "Fit " : "Crop"
+    
+    override func viewWillAppear(animated: Bool) {
+        
+        //SPEC The camera button is disabled on devices without a camera.
+        cameraButtonItem.enabled = UIImagePickerController.isSourceTypeAvailable(.Camera)
+        
+        self.subscribeToKeyboardNotifications()
     }
     
-    @IBAction func changeFont(sender: UIBarButtonItem) {
-        let controller = UIAlertController()
-        controller.title = "select the font"
-        controller.message = "anyFont"
-        let actionFontImpact = UIAlertAction(title:"Impact", style: UIAlertActionStyle.Default,handler:{
-            action in
-            self.fontName = "impact"
-            self.configureEditText(self.topTextField)
-            self.configureEditText(self.bottomTextField)
-            self.dismissViewControllerAnimated(true, completion:nil )
-        })
-        controller.addAction(actionFontImpact);
-        let actionFontOther = UIAlertAction(title:"Papyrus", style: UIAlertActionStyle.Default, handler: {
-            action in
-            self.fontName = "papyrus"
-            self.configureEditText(self.topTextField)
-            self.configureEditText(self.bottomTextField)
-            self.dismissViewControllerAnimated(true, completion:nil )
-        })
-        controller.addAction(actionFontOther)
-        let actionCancel = UIAlertAction(title:"Cancel", style: UIAlertActionStyle.Destructive, handler:{ action in
-            self.dismissViewControllerAnimated(true, completion:nil )
-            
-        })
-        controller.addAction(actionCancel)
-        self.presentViewController(controller, animated: true, completion: nil)
+    override func viewWillDisappear(animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.unsubscribeFromKeyboardNotifications()
     }
     
-    
-    func resetViews(){
-        shareButtonItem.enabled = false
-        topTextField.text = "TOP TEXT"
-        bottomTextField.text = "BOTTOM TEXT"
-        imageView.image = nil
-        cropButtonItem.title = "Fit"
-        cropButtonItem.enabled = false
+    /**
+        SPEC:
+        Text fields are provided for top and bottom text in a font and style that are easy to read:
+        bold, all caps, white with a black outlineand shrink to fit.
+    */
+    func updateMemeTextViews(){
+        configureEditText(topTextField)
+        configureEditText(bottomTextField)
     }
     
     func configureEditText(textField: UITextField){
         let memeDefaultText = [
             NSStrokeColorAttributeName : UIColor.blackColor(),
             NSForegroundColorAttributeName : UIColor.whiteColor(),
-            NSFontAttributeName : UIFont(name: fontName, size: 40)!,
+            NSFontAttributeName : UIFont(name: self.fontName, size: 40)!,
             NSStrokeWidthAttributeName : -3
             
         ]
         textField.defaultTextAttributes = memeDefaultText
+        textField.sizeToFit()
         textField.textAlignment = .Center
         textField.backgroundColor = .clearColor()
 
-    }
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-    override func viewWillAppear(animated: Bool) {
-        cameraButtonItem.enabled = UIImagePickerController.isSourceTypeAvailable(.Camera)
-        self.subscribeToKeyboardNotifications()
-    }
-
-    override func viewWillDisappear(animated: Bool) {
-        super.viewWillDisappear(animated)
-        self.unsubscribeFromKeyboardNotifications()
     }
     
     func textFieldShouldReturn(textField: UITextField) -> Bool {
@@ -110,6 +91,61 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         return true
     }
     
+    /**
+        SPEC:
+        The app displays the camera when the camera button is pressed on a phone.
+    */
+    @IBAction func takeAPhoto(sender: AnyObject) {
+        //TODO: Test in a real device
+        pickAnImageFromSource(.Camera, cameraMode:true)
+    }
+    
+    /**
+        SPEC:
+        The app displays the image picker when the Album button is pressed.
+    */
+    @IBAction func pickAnImageFromGallery(sender: AnyObject) {
+        pickAnImageFromSource(.PhotoLibrary, cameraMode:false)
+    }
+    
+    func pickAnImageFromSource(sourceType:UIImagePickerControllerSourceType, cameraMode: Bool){
+        let pickController = UIImagePickerController()
+        pickController.delegate = self
+        pickController.sourceType = sourceType
+        if cameraMode{
+            //from http://makeapppie.com/2014/12/04/swift-swift-using-the-uiimagepickercontroller-for-a-camera-and-photo-library/
+            pickController.cameraCaptureMode = .Photo
+            pickController.modalPresentationStyle = .FullScreen
+        }
+        self.presentViewController(pickController, animated: true, completion: nil)
+    }
+    
+    /**
+        SPEC:
+        The image from the camera/photo album is displayed.
+    */
+    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            self.imageView.contentMode = .ScaleAspectFit
+            self.imageView.image = pickedImage
+            
+            self.cropButtonItem.enabled = true
+            self.isCroppModeEnabled = false
+            shareButtonItem.enabled = true
+        }
+        
+        dismissViewControllerAnimated(true, completion: nil)
+        
+    }
+    
+    func imagePickerControllerDidCancel(picker: UIImagePickerController) {
+        dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+    /**
+        SPEC:
+        The view slides up to allow the bottom text field to be shown while typing.
+    */
     func subscribeToKeyboardNotifications() {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:"    , name: UIKeyboardWillShowNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:"    , name: UIKeyboardWillHideNotification, object: nil)
@@ -121,6 +157,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         NSNotificationCenter.defaultCenter().removeObserver(self, name:
             UIKeyboardWillHideNotification, object: nil)
     }
+    
     func keyboardWillShow(notification: NSNotification) {
         if (isKeyboardHidden && bottomTextField.isFirstResponder()) {
             isKeyboardHidden = false
@@ -140,94 +177,129 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let keyboardSize = userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue // of CGRect
         return keyboardSize.CGRectValue().height
     }
-    @IBAction func takeAPhoto(sender: AnyObject) {
-        let pickController = UIImagePickerController()
-        pickController.delegate = self
-        pickController.sourceType = .PhotoLibrary
-        self.presentViewController(pickController, animated: true, completion: nil)
-    }
-    
-    @IBAction func pickAnImageFromGallery(sender: AnyObject) {
-        let pickController = UIImagePickerController()
-        pickController.delegate = self
-        pickController.sourceType = .PhotoLibrary
-        self.presentViewController(pickController, animated: true, completion: nil)
-    }
-    
-    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
-        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
-            self.imageView.contentMode = .ScaleAspectFit
-            self.imageView.image = pickedImage
-            self.imageView.sizeThatFits(frameView.frame.size)
-            
-            
-            self.cropButtonItem.enabled = true
-            self.isCroppModeEnabled = false
-            shareButtonItem.enabled = true
-        }
-        
-        dismissViewControllerAnimated(true, completion: nil)
-        
-    }
-    
+
+    /**
+    SPEC:
+        When the user presses the “Cancel” button, the Meme Editor 
+        View returns to its launch state, 
+        displaying no image and default text.
+    */
     @IBAction func cancelMeme(sender: AnyObject) {
         resetViews()
     }
+    
+    func resetViews(){
+        shareButtonItem.enabled = false
+        imageView.image = nil
+        cropButtonItem.enabled = false
+        cropButtonItem.title = _cropLabel
+        self.fontName = _impactFontName
+        topTextField.text = _topLabelText
+        bottomTextField.text = _bottomLabelText
+        updateMemeTextViews()
+    }
+    
+    /**
+        SPEC:
+        The share button launches the Activity View.
+    */
     @IBAction func shareMeme(sender: UIBarButtonItem) {
-        // Present the Activity View Controller
+        ///ios/documentation/UIKit/Reference/UIView_Class/index.html
         UIView.animateWithDuration(
-            NSTimeInterval(2.0),
-            animations: showToolBar,
-            completion: toolbarDidHide
+            NSTimeInterval(0.5),
+            animations: hideToolBars,
+            completion: toolbarsDidHide
         )
     }
     
-    func showToolBar() {
-        topToolbar.frame.origin.y  -= topToolbar.frame.size.height;
+    func hideToolBars() {
+        topToolbar.frame.origin.y  -= topToolbar.frame.size.height
+        bottomToolbar.frame.origin.y  += bottomToolbar.frame.size.height
+
     }
     
-    func hideToolBar() {
-        topToolbar.frame.origin.y  += topToolbar.frame.size.height;
+    func showToolBars() {
+        topToolbar.frame.origin.y  += topToolbar.frame.size.height
+        bottomToolbar.frame.origin.y  -= bottomToolbar.frame.size.height
     }
     
-    func toolbarDidHide( result: Bool){
+    func toolbarsDidHide( result: Bool){
         createImage()
     }
     
     func createImage(){
-        selectedImage = generateMemedImage()
+        selectedImage = Meme.makeAnImageFromView(self.view)
         let controller = UIActivityViewController(activityItems: [selectedImage], applicationActivities: nil)
-        self.presentViewController(controller, animated: true, completion: save)
+        controller.completionWithItemsHandler = doneSharingHandler
+        self.presentViewController(controller, animated: true, completion: nil)
     }
     
-    func save(){
+    /**
+        SPEC:
+        When the share action is complete the meme is saved.
+    */
+    func doneSharingHandler(activityType: String?, completed: Bool, returnedItems: [AnyObject]?, error: NSError?) {
+        UIView.animateWithDuration(
+            NSTimeInterval(0.5),
+            animations: showToolBars,
+            completion: save
+        )
+        return
+    }
+    
+    /**
+        SPEC:
+        Memes are stored using a Meme model
+    */
+    func save(finished: Bool){
         let meme = Meme( topText: topTextField.text!, bottomText : bottomTextField.text!,image : imageView.image!, memedImage: selectedImage!)
         print("TOP TEXT \(meme.topText)")
         print("BOT TEXT \(meme.bottomText)")
         print("BOT TEXT \(meme.image.description)")
         print("BOT TEXT \(meme.memedImage.description)")
-        UIView.animateWithDuration(
-            NSTimeInterval(2.0),
-            animations: hideToolBar,
-            completion: nil
-        )
     }
     
-    func generateMemedImage() -> UIImage
-    {
-        // Render view to an image
-        
-    UIGraphicsBeginImageContext(frameView.frame.size)
-        let origin = CGPoint(x:0,y:0)
-        frameView.drawViewHierarchyInRect(CGRect(origin: origin, size: frameView.frame.size),afterScreenUpdates: true)
-        let memedImage : UIImage =
-        UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return memedImage
+    /**
+        EXTRA FEATURE:
+        User can crop image
+    */
+    @IBAction func cropImage(sender: AnyObject) {
+        self.imageView.contentMode = isCroppModeEnabled ? .ScaleAspectFit : .ScaleAspectFill
+        isCroppModeEnabled = !isCroppModeEnabled
+        self.cropButtonItem.title = isCroppModeEnabled ? _fitLabel : _cropLabel
     }
-        
-    func imagePickerControllerDidCancel(picker: UIImagePickerController) {
-        dismissViewControllerAnimated(true, completion: nil)
+    
+    /**
+        EXTRA FEATURE:
+        User can choose between different fonts
+    */
+    @IBAction func changeFont(sender: UIBarButtonItem) {
+        let controller = UIAlertController()
+        controller.title = _fontAlertTitle
+        controller.message = _fontAlertDescription
+        let actionFontImpact = UIAlertAction(title:_fontAlertOption1, style: UIAlertActionStyle.Default,handler:{
+            _ in
+            self.fontName = self._impactFontName
+            self.configureEditText(self.topTextField)
+            self.configureEditText(self.bottomTextField)
+            self.dismissViewControllerAnimated(true, completion:nil )
+        })
+        controller.addAction(actionFontImpact);
+        let actionFontOther = UIAlertAction(title:_fontAlertOption2, style: UIAlertActionStyle.Default, handler: {
+            _ in
+            self.fontName = self._papyrusFontName
+            self.configureEditText(self.topTextField)
+            self.configureEditText(self.bottomTextField)
+            self.dismissViewControllerAnimated(true, completion:nil )
+        })
+        controller.addAction(actionFontOther)
+        let actionCancel = UIAlertAction(title:_fontAlertOptionCancel, style: UIAlertActionStyle.Destructive, handler:{
+            _ in
+            self.dismissViewControllerAnimated(true, completion:nil )
+            
+        })
+        controller.addAction(actionCancel)
+        self.presentViewController(controller, animated: true, completion: nil)
     }
 
 }

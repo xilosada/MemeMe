@@ -15,16 +15,19 @@ struct Meme {
     var image: UIImage
     var memedImage: UIImage!
     
-    static func generateMemedImageFromView( view:UIView) -> UIImage
+    /**
+        Takes an UIView and return the content converted into an image
+        @param view the UIView we want to transform
+        @return An image obtained from the UIView
+    */
+    static func makeAnImageFromView(view:UIView) -> UIImage
     {
-        // Render view to an image
         UIGraphicsBeginImageContext(view.frame.size)
         view.drawViewHierarchyInRect(view.frame,
             afterScreenUpdates: true)
         let memedImage : UIImage =
         UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-        
         return memedImage
     }
 }
