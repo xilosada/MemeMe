@@ -83,7 +83,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         textField.sizeToFit()
         textField.textAlignment = .Center
         textField.backgroundColor = .clearColor()
-
     }
     
     func textFieldShouldReturn(textField: UITextField) -> Bool {
