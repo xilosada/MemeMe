@@ -33,9 +33,7 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
     let _bottomLabelText: String = "BOTTOM TEXT"
 
     var selectedImage: UIImage!
-    var memedImage: UIImage!
     var isKeyboardHidden: Bool = true
-<<<<<<< HEAD:MemeMe/ViewController.swift
     
     /// The actual scale method. True for crop, false for fit
     var isCroppModeEnabled: Bool = false
@@ -43,13 +41,20 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
     /// Current selected font
     var fontName: String!
     
-=======
+    var meme: Meme?
+    
+    static func presentController(controller:UIViewController, defaultMeme: Meme?=nil){
+        let mStoryBoard: UIStoryboard = UIStoryboard(name:"Main", bundle:nil)
+        let editorViewControler:EditorViewController = mStoryBoard.instantiateViewControllerWithIdentifier("EditorViewController") as! EditorViewController
+        editorViewControler.meme = defaultMeme
+        controller.presentViewController(editorViewControler, animated: true, completion: nil)
+    }
 
->>>>>>> finished collection, table and detail views:MemeMe/EditorViewController.swift
     override func viewDidLoad() {
         super.viewDidLoad()
         topTextField.delegate = self
         bottomTextField.delegate = self
+        fontName = _impactFontName
         resetViews()
     }
     
@@ -58,12 +63,12 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
         //SPEC The camera button is disabled on devices without a camera.
         cameraButtonItem.enabled = UIImagePickerController.isSourceTypeAvailable(.Camera)
         
-        self.subscribeToKeyboardNotifications()
+        subscribeToKeyboardNotifications()
     }
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
-        self.unsubscribeFromKeyboardNotifications()
+        unsubscribeFromKeyboardNotifications()
     }
     
     /**
@@ -80,7 +85,7 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
         let memeDefaultText = [
             NSStrokeColorAttributeName : UIColor.blackColor(),
             NSForegroundColorAttributeName : UIColor.whiteColor(),
-            NSFontAttributeName : UIFont(name: self.fontName, size: 40)!,
+            NSFontAttributeName : UIFont(name: fontName, size: 40)!,
             NSStrokeWidthAttributeName : -3
             
         ]
@@ -121,7 +126,7 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
             pickController.cameraCaptureMode = .Photo
             pickController.modalPresentationStyle = .FullScreen
         }
-        self.presentViewController(pickController, animated: true, completion: nil)
+        presentViewController(pickController, animated: true, completion: nil)
     }
     
     /**
@@ -133,19 +138,15 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
             self.imageView.contentMode = .ScaleAspectFit
             self.imageView.image = pickedImage
             
-            self.cropButtonItem.enabled = true
-            self.isCroppModeEnabled = false
+            cropButtonItem.enabled = true
+            isCroppModeEnabled = false
             shareButtonItem.enabled = true
         }
         
         dismissViewControllerAnimated(true, completion: nil)
         
     }
-    
-    func imagePickerControllerDidCancel(picker: UIImagePickerController) {
-        dismissViewControllerAnimated(true, completion: nil)
-    }
-    
+
     /**
         SPEC:
         The view slides up to allow the bottom text field to be shown while typing.
@@ -153,7 +154,6 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
     func subscribeToKeyboardNotifications() {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:"    , name: UIKeyboardWillShowNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:"    , name: UIKeyboardWillHideNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "phoneDidRotate:"    , name: UIDeviceOrientationDidChangeNotification, object: nil)
     }
     
     func unsubscribeFromKeyboardNotifications() {
@@ -166,14 +166,14 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
     func keyboardWillShow(notification: NSNotification) {
         if (isKeyboardHidden && bottomTextField.isFirstResponder()) {
             isKeyboardHidden = false
-            self.view.frame.origin.y -= getKeyboardHeight(notification)
+            view.frame.origin.y -= getKeyboardHeight(notification)
         }
     }
     
     func keyboardWillHide(notification: NSNotification) {
         if (!isKeyboardHidden) {
             isKeyboardHidden = true
-            self.view.frame.origin.y += getKeyboardHeight(notification)
+            view.frame.origin.y += getKeyboardHeight(notification)
         }
     }
     
@@ -182,43 +182,36 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
         let keyboardSize = userInfo![UIKeyboardFrameEndUserInfoKey] as! NSValue // of CGRect
         return keyboardSize.CGRectValue().height
     }
-<<<<<<< HEAD:MemeMe/ViewController.swift
-
     /**
     SPEC:
         When the user presses the “Cancel” button, the Meme Editor 
         View returns to its launch state, 
         displaying no image and default text.
     */
+    
     @IBAction func cancelMeme(sender: AnyObject) {
         resetViews()
-=======
-    
-    func phoneDidRotate(notification: NSNotification){
-        imageView.image = selectedImage
-        imageView.sizeThatFits(frameView.frame.size)
-    }
-    
-    @IBAction func takeAPhoto(sender: AnyObject) {
-        let pickController = UIImagePickerController()
-        pickController.delegate = self
-        pickController.sourceType = .PhotoLibrary
-        self.presentViewController(pickController, animated: true, completion: nil)
->>>>>>> finished collection, table and detail views:MemeMe/EditorViewController.swift
+        dismissViewControllerAnimated(true, completion: nil)
     }
     
     func resetViews(){
-        shareButtonItem.enabled = false
-        imageView.image = nil
-        cropButtonItem.enabled = false
-        cropButtonItem.title = _cropLabel
-        self.fontName = _impactFontName
-        topTextField.text = _topLabelText
-        bottomTextField.text = _bottomLabelText
+        let memeExists = meme != nil
+        shareButtonItem.enabled = memeExists
+        cropButtonItem.enabled = memeExists
+
+        
+        isCroppModeEnabled = memeExists ? meme!.cropped : false
+        cropButtonItem.title = isCroppModeEnabled ? _fitLabel : _cropLabel
+        cropButtonItem.title = isCroppModeEnabled ? _fitLabel : _cropLabel
+
+        imageView.contentMode = isCroppModeEnabled ? .ScaleAspectFill : .ScaleAspectFit
+        imageView.image = meme?.image
+        
+        fontName = memeExists ? meme!.fontName : fontName
+        topTextField.text =  meme?.topText ?? _topLabelText
+        bottomTextField.text = meme?.bottomText ?? _bottomLabelText
         updateMemeTextViews()
     }
-    
-<<<<<<< HEAD:MemeMe/ViewController.swift
     /**
         SPEC:
         The share button launches the Activity View.
@@ -226,21 +219,24 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
     @IBAction func shareMeme(sender: UIBarButtonItem) {
         ///ios/documentation/UIKit/Reference/UIView_Class/index.html
         UIView.animateWithDuration(
-            NSTimeInterval(0.5),
+            NSTimeInterval(0.2),
             animations: hideToolBars,
             completion: toolbarsDidHide
         )
     }
-    
+        
     func hideToolBars() {
-        topToolbar.frame.origin.y  -= topToolbar.frame.size.height
-        bottomToolbar.frame.origin.y  += bottomToolbar.frame.size.height
-
+        topToolbar.hidden = true
+        bottomToolbar.hidden = true
+        //topToolbar.frame.origin.y  -= topToolbar.frame.size.height
+        //bottomToolbar.frame.origin.y  += bottomToolbar.frame.size.height
     }
     
     func showToolBars() {
-        topToolbar.frame.origin.y  += topToolbar.frame.size.height
-        bottomToolbar.frame.origin.y  -= bottomToolbar.frame.size.height
+        topToolbar.hidden = false
+        bottomToolbar.hidden = false
+        //topToolbar.frame.origin.y  += topToolbar.frame.size.height
+        //bottomToolbar.frame.origin.y  -= bottomToolbar.frame.size.height
     }
     
     func toolbarsDidHide( result: Bool){
@@ -251,7 +247,7 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
         selectedImage = Meme.makeAnImageFromView(self.view)
         let controller = UIActivityViewController(activityItems: [selectedImage], applicationActivities: nil)
         controller.completionWithItemsHandler = doneSharingHandler
-        self.presentViewController(controller, animated: true, completion: nil)
+        presentViewController(controller, animated: true, completion: nil)
     }
     
     /**
@@ -260,7 +256,7 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
     */
     func doneSharingHandler(activityType: String?, completed: Bool, returnedItems: [AnyObject]?, error: NSError?) {
         UIView.animateWithDuration(
-            NSTimeInterval(0.5),
+            NSTimeInterval(0.2),
             animations: showToolBars,
             completion: save
         )
@@ -271,45 +267,11 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
         SPEC:
         Memes are stored using a Meme model
     */
-    func save(finished: Bool){
-        let meme = Meme( topText: topTextField.text!, bottomText : bottomTextField.text!,image : imageView.image!, memedImage: selectedImage!)
-        print("TOP TEXT \(meme.topText)")
-        print("BOT TEXT \(meme.bottomText)")
-        print("BOT TEXT \(meme.image.description)")
-        print("BOT TEXT \(meme.memedImage.description)")
-=======
-    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
-        if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
-            self.imageView.contentMode = .ScaleAspectFit
-            self.imageView.image = pickedImage
-            self.imageView.sizeThatFits(frameView.frame.size)
-            shareButtonItem.enabled = true
-            selectedImage = pickedImage
-        }
-        dismissViewControllerAnimated(true, completion: nil)
-        
-    }
-    
-    @IBAction func cancelMeme(sender: AnyObject) {
-        resetViews()
-        self.dismissViewControllerAnimated(true, completion: nil)
-    }
-    
-    @IBAction func shareMeme(sender: UIBarButtonItem) {
-        // Present the Activity View Controller
-        memedImage = generateMemedImage()
-        let controller = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
-        self.presentViewController(controller, animated: true, completion: save)
-    }
-    
-    func save(){
-        let meme = Meme( topText: topTextField.text!, bottomText : bottomTextField.text!,image : imageView.image!, memedImage: memedImage)
-        
+
+    func save(result:Bool){
+        let meme = Meme( topText: topTextField.text!, bottomText : bottomTextField.text!,image : imageView.image!, memedImage: selectedImage, cropped: isCroppModeEnabled, fontName:fontName)
         // Add it to the memes array in the Application Delegate
-        let object = UIApplication.sharedApplication().delegate
-        let appDelegate = object as! AppDelegate
-        appDelegate.memes.append(meme)
->>>>>>> finished collection, table and detail views:MemeMe/EditorViewController.swift
+        AppDelegate.getInstance().memes.append(meme)
     }
     
     /**
@@ -317,9 +279,9 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
         User can crop image
     */
     @IBAction func cropImage(sender: AnyObject) {
-        self.imageView.contentMode = isCroppModeEnabled ? .ScaleAspectFit : .ScaleAspectFill
+        imageView.contentMode = isCroppModeEnabled ? .ScaleAspectFit : .ScaleAspectFill
         isCroppModeEnabled = !isCroppModeEnabled
-        self.cropButtonItem.title = isCroppModeEnabled ? _fitLabel : _cropLabel
+        cropButtonItem.title = isCroppModeEnabled ? _fitLabel : _cropLabel
     }
     
     /**
@@ -335,7 +297,7 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
             self.fontName = self._impactFontName
             self.configureEditText(self.topTextField)
             self.configureEditText(self.bottomTextField)
-            self.dismissViewControllerAnimated(true, completion:nil )
+            controller.dismissViewControllerAnimated(true, completion:nil )
         })
         controller.addAction(actionFontImpact);
         let actionFontOther = UIAlertAction(title:_fontAlertOption2, style: UIAlertActionStyle.Default, handler: {
@@ -343,17 +305,15 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
             self.fontName = self._papyrusFontName
             self.configureEditText(self.topTextField)
             self.configureEditText(self.bottomTextField)
-            self.dismissViewControllerAnimated(true, completion:nil )
+            controller.dismissViewControllerAnimated(true, completion:nil )
         })
         controller.addAction(actionFontOther)
         let actionCancel = UIAlertAction(title:_fontAlertOptionCancel, style: UIAlertActionStyle.Destructive, handler:{
             _ in
-            self.dismissViewControllerAnimated(true, completion:nil )
-            
+            controller.dismissViewControllerAnimated(true, completion:nil )
         })
         controller.addAction(actionCancel)
-        self.presentViewController(controller, animated: true, completion: nil)
+        presentViewController(controller, animated: true, completion: nil)
     }
 
 }
-

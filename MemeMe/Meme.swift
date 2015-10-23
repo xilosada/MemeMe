@@ -14,6 +14,8 @@ struct Meme {
     var bottomText: String
     var image: UIImage
     var memedImage: UIImage!
+    var cropped: Bool!
+    var fontName: String!
     
     /**
         Takes an UIView and return the content converted into an image
