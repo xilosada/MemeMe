@@ -228,15 +228,11 @@ class EditorViewController: UIViewController, UIImagePickerControllerDelegate, U
     func hideToolBars() {
         topToolbar.hidden = true
         bottomToolbar.hidden = true
-        //topToolbar.frame.origin.y  -= topToolbar.frame.size.height
-        //bottomToolbar.frame.origin.y  += bottomToolbar.frame.size.height
     }
     
     func showToolBars() {
         topToolbar.hidden = false
         bottomToolbar.hidden = false
-        //topToolbar.frame.origin.y  += topToolbar.frame.size.height
-        //bottomToolbar.frame.origin.y  -= bottomToolbar.frame.size.height
     }
     
     func toolbarsDidHide( result: Bool){
